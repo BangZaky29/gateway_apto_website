@@ -1,0 +1,14 @@
+/* =========================================
+FILE: src/styles/Style_forMobile/Payment.mobile.css
+========================================= */
+
+@media (max-width: 768px) {
+  .payment-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-form,
+  .payment-summary {
+    padding: 20px;
+  }
+}

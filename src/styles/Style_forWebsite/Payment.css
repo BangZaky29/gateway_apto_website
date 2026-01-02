@@ -1,0 +1,65 @@
+/* =========================================
+FILE: src/styles/Style_forWebsite/Payment.css
+========================================= */
+
+.payment-container {
+  min-height: 100vh;
+  padding: calc(var(--header-height) + 40px) 20px 40px;
+  background: linear-gradient(135deg, var(--gray-50) 0%, #F5F8FF 100%);
+}
+
+.payment-wrapper {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.payment-form {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+}
+
+.payment-summary {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+  height: fit-content;
+  position: sticky;
+  top: calc(var(--header-height) + 20px);
+}
+
+.payment-method {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+.payment-method.active {
+  border-color: var(--blue-500);
+  background: var(--blue-50);
+}
+
+.payment-method:hover {
+  border-color: var(--blue-500);
+}
+
+@media (max-width: 1024px) {
+  .payment-wrapper {
+    grid-template-columns: 1fr;
+  }
+  
+  .payment-summary {
+    position: relative;
+    top: 0;
+  }
+}
