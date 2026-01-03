@@ -1,54 +1,64 @@
-// =========================================
-// FILE: src/components/sections/Features.jsx - UPDATED
-// =========================================
-
 import { useFetch } from '../../hooks/useFetch';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingSpinner from '../common/LoadingSpinner';
+const MAIN_SITE_URL = 'https://nuansasolution.id';
+
 
 const Features = () => {
   const { data: features, loading, error } = useFetch('/feature');
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  // ✅ AMBIL ENV SEKALI SAJA
+  const TOOL_BASE_URL = import.meta.env.VITE_TOOL_BASE_URL;
+
   const handleFeatureClick = async (feature) => {
-    // Jika fitur free, langsung redirect
-    if (feature.status === 'free') {
-      window.location.href = feature.code;
-      return;
-    }
+  // pastikan ada trailing slash
+  const targetUrl = `${MAIN_SITE_URL}${feature.code}/`;
 
-    // Jika premium, cek auth
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
+  // =====================
+  // FREE FEATURE
+  // =====================
+  if (feature.status === 'free') {
+    window.location.href = targetUrl;
+    return;
+  }
 
-    // Cek subscription
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/link/check`, {
+  // =====================
+  // PREMIUM → LOGIN
+  // =====================
+  if (!isAuthenticated) {
+    navigate('/login');
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/link/check`,
+      {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ path: feature.code })
-      });
-
-      const result = await response.json();
-
-      if (result.success && result.allowed) {
-        window.location.href = feature.code;
-      } else {
-        alert(result.message || 'Anda belum berlangganan untuk fitur ini. Silakan upgrade paket Anda.');
-        navigate('/payment');
       }
-    } catch (err) {
-      console.error('Error checking access:', err);
-      alert('Terjadi kesalahan. Silakan coba lagi.');
+    );
+
+    const result = await response.json();
+
+    if (result.success && result.allowed) {
+      window.location.href = targetUrl;
+    } else {
+      alert(result.message);
+      navigate('/payment');
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert('Terjadi kesalahan');
+  }
+};
 
   const getFeatureIcon = (name) => {
     const icons = {
