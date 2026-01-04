@@ -1,10 +1,11 @@
 // =========================================
-// FILE: src/components/forms/RegisterForm.jsx
+// FILE: src/components/forms/RegisterForm.jsx - UPDATED
 // =========================================
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../hooks/useToast';
 import { validateForm, validatePhone } from '../../utils/validation';
 import { getErrorMessage } from '../../utils/helpers';
 import Button from '../common/Button';
@@ -19,8 +20,8 @@ const RegisterForm = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [generalError, setGeneralError] = useState('');
   const { register } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -31,7 +32,6 @@ const RegisterForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setGeneralError('');
 
     const validationErrors = validateForm(formData, ['name', 'email', 'phone', 'password']);
     
@@ -50,10 +50,16 @@ const RegisterForm = () => {
 
     setLoading(true);
     try {
-      await register(formData.name, formData.email, formData.phone, formData.password);
-      navigate('/verify-otp', { state: { email: formData.email } });
+      const response = await register(formData.name, formData.email, formData.phone, formData.password);
+      
+      // ✅ Show trial activation success
+      addToast('🎉 Registrasi berhasil! Trial 3 hari diaktifkan!', 'success', 4000);
+      
+      setTimeout(() => {
+        navigate('/verify-otp', { state: { email: formData.email } });
+      }, 500);
     } catch (error) {
-      setGeneralError(getErrorMessage(error));
+      addToast(getErrorMessage(error), 'error');
     } finally {
       setLoading(false);
     }
@@ -61,11 +67,16 @@ const RegisterForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="auth-form">
-      {generalError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {generalError}
+      {/* Trial Info Banner */}
+      <div className="bg-gradient-primary text-white p-4 rounded-lg mb-6 animate-fade-in">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">🎁</span>
+          <div>
+            <p className="font-bold">Bonus Trial 3 Hari!</p>
+            <p className="text-sm opacity-90">Dapatkan akses gratis semua fitur premium</p>
+          </div>
         </div>
-      )}
+      </div>
 
       <div className="form-group">
         <label htmlFor="name">Nama Lengkap</label>
@@ -145,7 +156,7 @@ const RegisterForm = () => {
         loading={loading}
         disabled={loading}
       >
-        Daftar
+        Daftar & Aktifkan Trial
       </Button>
 
       <div className="auth-footer">
