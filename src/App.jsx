@@ -1,5 +1,5 @@
 // =========================================
-// FILE: src/App.jsx - FINAL FIX
+// FILE: src/App.jsx - UPDATED
 // =========================================
 
 import { Routes, Route } from 'react-router-dom';
@@ -19,6 +19,14 @@ import PaymentConfirmation from './pages/Payment/PaymentConfirmation';
 import FeaturesPage from './pages/Features/FeaturesPage';
 import NotFound from './pages/NotFound';
 
+// Info Pages
+import About from './pages/Info/About';
+import { Blog } from './pages/Info/Blog';
+import { Contact } from './pages/Info/Contact';
+import { Privacy } from './pages/Info/Privacy';
+import { Terms } from './pages/Info/Terms';
+import { Security } from './pages/Info/Security';
+
 import './App.css';
 
 function App() {
@@ -37,6 +45,15 @@ function App() {
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/payment-confirmation" element={<PaymentConfirmation />} />
             <Route path="/features" element={<FeaturesPage />} />
+            
+            {/* Info Pages */}
+            <Route path="/about" element={<About />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/security" element={<Security />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

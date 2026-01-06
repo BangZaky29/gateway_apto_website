@@ -1,15 +1,15 @@
 // =========================================
-// FILE: src/components/common/Header.jsx
+// FILE: src/components/common/Header.jsx - UPDATED
 // =========================================
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import "@/styles/Style_forWebsite/Home.css";
+import Sidebar from './Sidebar';
 import logo from '../../assets/images/NS_blank_02.png';
 
 const Header = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -19,65 +19,75 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-soft sticky top-0 z-50">
-      <nav className="container-max flex justify-between items-center h-20">
-        <Link to="https://nuansasolution.id/" target="_blank">
-          <img src={logo} alt="Nuansasolution" className="w-32 mb-1" />
-        </Link>
-
-        <div className="hidden md:flex gap-8">
-          <Link to="/" className="text-muted hover:text-dark transition">
-            Home
+    <>
+      <header className="header-modern">
+        <nav className="header-container">
+          {/* Logo */}
+          <Link to="/" className="header-logo">
+            <img src={logo} alt="Nuansa Solution" />
           </Link>
-          <a href="#features" className="text-muted hover:text-dark transition">
-            Features
-          </a>
-          <a href="#pricing" className="text-muted hover:text-dark transition">
-            Pricing
-          </a>
-          <a href="#faq" className="text-muted hover:text-dark transition">
-            FAQ
-          </a>
-        </div>
 
-        <div className="flex gap-4">
-          {isAuthenticated ? (
-            <div className="flex items-center gap-4">
-              <Link to="/profile" className="text-sm font-medium hover:text-blue-600 transition">
-                {user?.name || 'Profile'}
-              </Link>
-              <button onClick={handleLogout} className="btn btn-primary text-sm">
-                Logout
-              </button>
-            </div>
-          ) : (
-            <>
-              <Link to="/login" className="btn btn-secondary text-sm">
-                Login
-              </Link>
-              <Link to="/register" className="btn btn-primary text-sm">
-                Register
-              </Link>
-            </>
-          )}
-        </div>
-
-        <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
-          ☰
-        </button>
-      </nav>
-
-      {isOpen && (
-        <div className="md:hidden bg-white border-t">
-          <div className="container-max py-4 flex flex-col gap-4">
-            <Link to="/">Home</Link>
-            <Link to="/features">Features</Link>
-            <a href="#pricing">Pricing</a>
-            <a href="#faq">FAQ</a>
+          {/* Desktop Navigation */}
+          <div className="header-nav-desktop">
+            <Link to="/" className="header-nav-link">
+              Home
+            </Link>
+            <a href="#features" className="header-nav-link">
+              Features
+            </a>
+            <a href="#pricing" className="header-nav-link">
+              Pricing
+            </a>
+            <a href="#faq" className="header-nav-link">
+              FAQ
+            </a>
           </div>
-        </div>
-      )}
-    </header>
+
+          {/* Desktop Auth */}
+          <div className="header-auth-desktop">
+            {isAuthenticated ? (
+              <div className="header-user-menu">
+                <Link to="/profile" className="header-user-link">
+                  <div className="header-user-avatar">
+                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <span className="header-user-name">{user?.name || 'User'}</span>
+                </Link>
+                <button onClick={handleLogout} className="btn btn-outline btn-sm">
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="header-auth-buttons">
+                <Link to="/login" className="btn btn-outline btn-sm">
+                  Login
+                </Link>
+                <Link to="/register" className="btn btn-primary btn-sm">
+                  Register
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Hamburger */}
+          <button 
+            className="header-hamburger"
+            onClick={() => setIsSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </nav>
+      </header>
+
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+      />
+    </>
   );
 };
 
