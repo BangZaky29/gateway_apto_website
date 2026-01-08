@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useFetch } from '../../hooks/useFetch';
 import PackageCard from '../cards/PackageCard';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { useAuth } from '../../hooks/useAuth';
 
 const DURATION_TABS = [
   { label: '1 Bulan', days: 30 },
@@ -14,58 +15,50 @@ const DURATION_TABS = [
   { label: '1 Tahun', days: 365, badge: '40% OFF' },
 ];
 
-const Packages = () => {
-  const { data: packages, loading, error } = useFetch('/packages');
-  const [activeDuration, setActiveDuration] = useState(365);
+const formatPrice = (price) => {
+  if (!price) return '0';
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(price);
+};
 
-  const filteredPackages = packages?.filter(
-    pkg => pkg.duration_days === activeDuration
-  );
+const Packages = () => {
+  const { data: apiData, loading, error } = useFetch('/packages');
+  const packages = apiData?.data || [];
+
+  const [activeDuration, setActiveDuration] = useState(365);
+  const { isAuthenticated } = useAuth();
+
+  const filteredPackages = Array.isArray(packages)
+    ? packages.filter(pkg => pkg.duration_days === activeDuration && pkg.is_active === 1)
+    : [];
 
   return (
     <section id="pricing" className="packages-section py-24">
       <div className="container-max">
-        {/* ================= HEADER ================= */}
         <div className="text-center mb-14 animate-fade-in">
-          <h2 className="text-3xl font-bold mb-4">
-            Pilih Paket Layanan Anda
-          </h2>
+          <h2 className="text-3xl font-bold mb-4">Pilih Paket Layanan Anda</h2>
           <p className="text-muted text-lg max-w-2xl mx-auto">
-            Dapatkan akses ke berbagai dokumen legal dan layanan konsultasi
-            sesuai kebutuhan Anda
+            Dapatkan akses ke berbagai dokumen legal dan layanan konsultasi sesuai kebutuhan Anda
           </p>
         </div>
 
-        {/* ================= DURATION TABS ================= */}
         <div className="flex justify-center gap-4 mb-16 flex-wrap">
           {DURATION_TABS.map(tab => {
             const isActive = activeDuration === tab.days;
-
             return (
               <button
                 key={tab.days}
                 onClick={() => setActiveDuration(tab.days)}
-                className={`
-                  relative px-6 py-3 rounded-full font-semibold text-sm transition-all
-                  ${
-                    isActive
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                  }
+                className={`relative px-6 py-3 rounded-full font-semibold text-sm transition-all
+                  ${isActive
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}
                 `}
               >
                 {tab.label}
-
                 {tab.badge && (
                   <span
-                    className={`
-                      ml-2 px-3 py-1 rounded-full text-xs font-bold
-                      ${
-                        isActive
-                          ? 'bg-white/20 text-white'
-                          : 'bg-green-100 text-green-600'
-                      }
-                    `}
+                    className={`ml-2 px-3 py-1 rounded-full text-xs font-bold
+                      ${isActive ? 'bg-white/20 text-white' : 'bg-green-100 text-green-600'}`}
                   >
                     {tab.badge}
                   </span>
@@ -75,29 +68,27 @@ const Packages = () => {
           })}
         </div>
 
-        {/* ================= CONTENT ================= */}
         {loading ? (
-          <LoadingSpinner />
-        ) : error ? (
-          <div className="text-center text-red-500">
-            <p>Gagal memuat paket. Silakan coba lagi.</p>
+          <div className="flex justify-center">
+            <LoadingSpinner />
           </div>
-        ) : filteredPackages && filteredPackages.length > 0 ? (
-          <div className="packages-grid">
+        ) : filteredPackages.length > 0 ? (
+          <div className="packages-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredPackages.map((pkg, index) => (
               <PackageCard
                 key={pkg.id}
                 id={pkg.id}
                 name={pkg.name}
-                price={pkg.price}
+                price={formatPrice(pkg.price)}
                 duration_days={pkg.duration_days}
                 description={pkg.description}
                 isPopular={index === 1}
+                loginRequired={!isAuthenticated} // <-- new prop
               />
             ))}
           </div>
         ) : (
-          <div className="text-center text-muted">
+          <div className="text-center text-gray-500">
             <p>Paket tidak tersedia untuk durasi ini</p>
           </div>
         )}
