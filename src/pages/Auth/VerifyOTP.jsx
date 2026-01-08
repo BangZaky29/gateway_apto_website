@@ -2,37 +2,84 @@
 // FILE: src/pages/Auth/VerifyOTP.jsx
 // =========================================
 
-import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { authController } from '../../controllers/authController';
-import { validateOTP, validateForm } from '../../utils/validation';
+import { validateOTP } from '../../utils/validation';
 import { getErrorMessage } from '../../utils/helpers';
 import Button from '../../components/common/Button';
 import '../../styles/Style_forWebsite/Auth.css';
+import { useState, useEffect } from 'react';
+
+
 
 const VerifyOTP = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const email = location.state?.email || '';
+
+  // ⬇️ Ambil PHONE dari state (bukan email)
+  const phone = location.state?.phone || '';
 
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
 
-  if (!email) {
+  const [resendLoading, setResendLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+  if (cooldown <= 0) return;
+
+  const timer = setInterval(() => {
+    setCooldown((prev) => prev - 1);
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, [cooldown]);
+
+
+  const handleResendOtp = async () => {
+  if (cooldown > 0) return;
+
+  setResendLoading(true);
+  setError('');
+  setSuccess('');
+
+  try {
+    await authController.resendOtp(phone);
+    setSuccess('OTP baru berhasil dikirim');
+    setCooldown(60); // ⏱️ sync dengan backend cooldown
+  } catch (err) {
+    setError(getErrorMessage(err));
+  } finally {
+    setResendLoading(false);
+  }
+};
+
+
+  // ⬇️ Kalau phone tidak ada
+  if (!phone) {
     return (
       <div className="auth-container">
         <div className="auth-card text-center">
-          <h2 className="text-red-500">Email tidak ditemukan</h2>
-          <p className="text-muted mt-2">Silakan daftar terlebih dahulu</p>
-          <Button onClick={() => navigate('/register')} variant="primary" className="mt-4">
+          <h2 className="text-red-500">Nomor HP tidak ditemukan</h2>
+          <p className="text-muted mt-2">
+            Silakan daftar atau login terlebih dahulu
+          </p>
+          <Button
+            onClick={() => navigate('/register')}
+            variant="primary"
+            className="mt-4"
+          >
             Kembali ke Daftar
           </Button>
         </div>
       </div>
     );
   }
+
+  // ⬇️ Masking nomor (opsional tapi recommended)
+  const maskedPhone = phone.replace(/(\d{2})\d+(\d{3})/, '$1****$2');
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -46,8 +93,10 @@ const VerifyOTP = () => {
 
     setLoading(true);
     try {
-      await authController.verifyOTP(email, otp);
-      setSuccess('Email berhasil diverifikasi! Silakan login.');
+      // ⬇️ Kirim PHONE + OTP ke backend
+      await authController.verifyOtp(phone, otp);
+
+      setSuccess('Nomor HP berhasil diverifikasi! Silakan login.');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -60,8 +109,11 @@ const VerifyOTP = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h2>Verifikasi Email</h2>
-          <p className="text-muted">Masukkan kode OTP yang dikirim ke {email}</p>
+          <h2>Verifikasi OTP</h2>
+          <p className="text-muted">
+            Masukkan kode OTP yang dikirim ke{' '}
+            <strong>{maskedPhone}</strong>
+          </p>
         </div>
 
         <form onSubmit={handleVerify} className="auth-form">
@@ -84,7 +136,9 @@ const VerifyOTP = () => {
               id="otp"
               maxLength="6"
               value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              onChange={(e) =>
+                setOtp(e.target.value.replace(/\D/g, ''))
+              }
               placeholder="000000"
               disabled={loading}
             />
@@ -103,9 +157,21 @@ const VerifyOTP = () => {
 
           <div className="auth-footer">
             <p className="text-sm">Tidak menerima kode?</p>
-            <button type="button" className="text-blue-600 font-semibold hover:underline">
-              Kirim ulang
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={resendLoading || cooldown > 0}
+              className={`font-semibold hover:underline
+                ${cooldown > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600'}
+              `}
+            >
+              {cooldown > 0
+                ? `Kirim ulang (${cooldown}s)`
+                : resendLoading
+                ? 'Mengirim...'
+                : 'Kirim ulang'}
             </button>
+
           </div>
         </form>
       </div>

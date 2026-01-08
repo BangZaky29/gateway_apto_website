@@ -1,6 +1,10 @@
 import { Routes, Route } from 'react-router-dom';
 import { ToastProvider } from './hooks/useToast';
 
+// Config Password 
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import ResetPassword from './pages/Auth/ResetPassword';
+
 // Layouts
 import MainLayout from './layouts/MainLayout';
 import AuthLayout from './layouts/AuthLayout';
@@ -43,6 +47,10 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
+
+          {/* 🆕 Forgot Password Routes */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
 
         {/* ================= MAIN (WITH HEADER / FOOTER) ================= */}

@@ -1,25 +1,24 @@
 // =========================================
-// FILE: src/components/forms/LoginForm.jsx - ENHANCED
+// FILE: src/components/forms/LoginForm.jsx (FINAL)
 // =========================================
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { validateForm } from '../../utils/validation';
-import { getErrorMessage } from '../../utils/helpers';
 import Button from '../common/Button';
-import { Eye, EyeOff, AlertCircle, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Phone, Lock } from 'lucide-react';
 import '../../styles/Style_forWebsite/Auth.css';
 
 const LoginForm = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ phone: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -34,27 +33,25 @@ const LoginForm = () => {
     e.preventDefault();
     setGeneralError('');
 
-    // Validasi form
-    const validationErrors = validateForm(formData, ['email', 'password']);
+    const validationErrors = validateForm(formData, ['phone', 'password']);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
     setLoading(true);
-
     try {
-      const res = await login(formData.email, formData.password);
-      
-      // Simpan remember me preference jika diperlukan
+      await login(formData.phone, formData.password);
+
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true');
       }
-      
+
       navigate('/profile');
     } catch (err) {
-      const msg = err?.response?.data?.message ?? err.message ?? 'Terjadi kesalahan';
-      setGeneralError(msg);
+      setGeneralError(
+        err?.response?.data?.message ?? 'Login gagal'
+      );
     } finally {
       setLoading(false);
     }
@@ -62,13 +59,12 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="auth-form">
-      {/* Welcome Banner */}
+
       <div className="welcome-banner">
-        <h3>Selamat Datang Kembali! 👋</h3>
-        <p>Silakan login untuk melanjutkan</p>
+        <h3>Selamat Datang Kembali 👋</h3>
+        <p>Masuk menggunakan nomor HP terdaftar</p>
       </div>
 
-      {/* General Error Alert */}
       {generalError && (
         <div className="alert alert-error">
           <AlertCircle size={20} />
@@ -76,31 +72,31 @@ const LoginForm = () => {
         </div>
       )}
 
-      {/* Email Field */}
-      <div className={`form-group ${focusedField === 'email' ? 'focused' : ''}`}>
-        <label htmlFor="email">Email</label>
+      {/* PHONE */}
+      <div className={`form-group ${focusedField === 'phone' ? 'focused' : ''}`}>
+        <label htmlFor="phone">Nomor HP</label>
         <div className="input-wrapper with-icon">
-          <Mail size={20} className="input-icon" />
+          <Phone size={20} className="input-icon" />
           <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
+            type="tel"
+            id="phone"
+            name="phone"
+            value={formData.phone}
             onChange={handleChange}
-            onFocus={() => setFocusedField('email')}
+            onFocus={() => setFocusedField('phone')}
             onBlur={() => setFocusedField('')}
-            placeholder="your@email.com"
+            placeholder="08xxxxxxxxxx"
             disabled={loading}
           />
         </div>
-        {errors.email && (
+        {errors.phone && (
           <span className="error-message">
-            <AlertCircle size={14} /> {errors.email}
+            <AlertCircle size={14} /> {errors.phone}
           </span>
         )}
       </div>
 
-      {/* Password Field */}
+      {/* PASSWORD */}
       <div className={`form-group ${focusedField === 'password' ? 'focused' : ''}`}>
         <label htmlFor="password">Password</label>
         <div className="input-wrapper with-icon password-wrapper">
@@ -122,7 +118,7 @@ const LoginForm = () => {
             onClick={() => setShowPassword(!showPassword)}
             tabIndex="-1"
           >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            {showPassword ? <EyeOff /> : <Eye />}
           </button>
         </div>
         {errors.password && (
@@ -132,7 +128,6 @@ const LoginForm = () => {
         )}
       </div>
 
-      {/* Remember Me & Forgot Password */}
       <div className="form-options">
         <label className="checkbox-label">
           <input
@@ -152,17 +147,14 @@ const LoginForm = () => {
         type="submit"
         variant="primary"
         size="lg"
-        className="w-full submit-button"
+        className="w-full"
         loading={loading}
         disabled={loading}
       >
         {loading ? 'Memproses...' : 'Login'}
       </Button>
 
-      {/* Divider */}
-      <div className="divider">
-        <span>atau</span>
-      </div>
+      <div className="divider"><span>atau</span></div>
 
       <div className="auth-footer">
         <p>Belum punya akun?</p>

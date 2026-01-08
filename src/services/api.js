@@ -1,5 +1,5 @@
 // =========================================
-// FILE: src/services/api.js
+// FILE: src/services/api.js (FINAL)
 // =========================================
 
 import axios from 'axios';
@@ -12,7 +12,9 @@ const api = axios.create({
   },
 });
 
-// Request interceptor
+// ======================
+// REQUEST
+// ======================
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -21,19 +23,34 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor
+// ======================
+// RESPONSE
+// ======================
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const url = error.config?.url;
+
+    const publicRoutes = [
+      '/auth/login',
+      '/auth/register',
+      '/auth/verify-otp',
+      '/auth/resend-otp',
+      '/auth/forgot-password',
+      '/auth/verify-reset-otp'
+    ];
+
+    const isPublic = publicRoutes.some(route => url?.includes(route));
+
+    if ((status === 401 || status === 403) && !isPublic) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );

@@ -72,7 +72,7 @@ const RegisterForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const validationErrors = validateForm(formData, ['name', 'email', 'phone', 'password']);
+    const validationErrors = validateForm(formData, ['name', 'phone', 'password']);
     
     if (!validatePhone(formData.phone)) {
       validationErrors.phone = 'Nomor telepon tidak valid';
@@ -94,7 +94,11 @@ const RegisterForm = () => {
       addToast('🎉 Registrasi berhasil! Trial 3 hari diaktifkan!', 'success', 4000);
       
       setTimeout(() => {
-        navigate('/verify-otp', { state: { email: formData.email } });
+        navigate('/verify-otp', {
+          state: {
+            phone: formData.phone,
+          },
+        });
       }, 500);
     } catch (error) {
       addToast(getErrorMessage(error), 'error');
